@@ -8,9 +8,11 @@
 #if FULL || QUERY_CACHE || QUERY_FILTER
 #if EF6
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Data.Entity.Core.EntityClient;
 using System.Data.Entity.Core.Objects;
+using System.Data.Entity.Infrastructure.Interception;
 using System.Reflection;
 
 namespace Z.EntityFramework.Plus
@@ -40,7 +42,7 @@ namespace Z.EntityFramework.Plus
                 var interceptorsField = commandDispatcher.GetType().GetField("_interceptors", BindingFlags.Instance | BindingFlags.NonPublic);
                 var interceptors = (List<IDbCommandInterceptor>) interceptorsField.GetValue(commandDispatcher);
 
-                interceptors.ForEach(i => i.ReaderExecuting(prepareEntityCommandBeforeExecution, new DbCommandInterceptionContext<DbDataReader>(objectQuery.Context.InterceptionContext)));
+                interceptors.ForEach(i => i.ReaderExecuting(prepareEntityCommandBeforeExecution, new DbCommandInterceptionContext<DbDataReader>(objectQuery.Context.GetInterceptionContext())));
 
                 sql = prepareEntityCommandBeforeExecution.CommandText;
                 var parameters = prepareEntityCommandBeforeExecution.Parameters;
