@@ -34,6 +34,14 @@ namespace Z.EntityFramework.Plus
                 var prepareEntityCommandBeforeExecutionMethod = getCommandDefinition.GetType().GetMethod("PrepareEntityCommandBeforeExecution", BindingFlags.NonPublic | BindingFlags.Instance);
                 var prepareEntityCommandBeforeExecution = (DbCommand) prepareEntityCommandBeforeExecutionMethod.Invoke(getCommandDefinition, new object[] {entityCommand});
 
+                var commandDispatcherField = DbInterception.Dispatch.Command.GetType().GetField("_internalDispatcher", BindingFlags.Instance | BindingFlags.NonPublic);
+                var commandDispatcher = commandDispatcherField.GetValue(DbInterception.Dispatch.Command);
+
+                var interceptorsField = commandDispatcher.GetType().GetField("_interceptors", BindingFlags.Instance | BindingFlags.NonPublic);
+                var interceptors = (List<IDbCommandInterceptor>) interceptorsField.GetValue(commandDispatcher);
+
+                interceptors.ForEach(i => i.ReaderExecuting(prepareEntityCommandBeforeExecution, new DbCommandInterceptionContext<DbDataReader>(objectQuery.Context.InterceptionContext)));
+
                 sql = prepareEntityCommandBeforeExecution.CommandText;
                 var parameters = prepareEntityCommandBeforeExecution.Parameters;
 
